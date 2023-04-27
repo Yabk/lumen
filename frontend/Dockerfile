@@ -1,20 +1,19 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-bullseye
+FROM python:3.10-bullseye as builder
 
-# Set the working directory to /app
 WORKDIR /app
-
-# Copy the requirements file into the container at /app
+RUN pip install --upgrade pip
 COPY requirements.txt /app
+RUN pip install --user -r requirements.txt
 
-# Install the required packages
-RUN pip install -r requirements.txt
 
-# Copy the rest of the frontend code into the container at /app
+FROM python:3.10-slim-bullseye as release
+
+ENV PYTHONUNBUFFERED 1
+ENV PATH=/root/.local/bin:$PATH
+
+COPY --from=builder /root/.local /root/.local
 COPY . /app
-
-# Expose the port that the frontend will be running on
+WORKDIR app
 EXPOSE 8501
 
-# Start the frontend server
 CMD ["streamlit", "run", "src/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
