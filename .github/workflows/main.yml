@@ -1,0 +1,22 @@
+name: Deploy App on Master Branch
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    env:
+      APP_PATH: ${{ secrets.APP_PATH }}
+
+    steps:
+      - name: Update App
+        run: |
+          cd $APP_PATH
+          git fetch
+          git checkout ${{ github.sha }}
+          docker-compose build
+          docker-compose up -d
