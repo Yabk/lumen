@@ -4,6 +4,8 @@ WORKDIR /app
 RUN pip install --upgrade pip
 COPY requirements.txt /app
 RUN pip install --user -r requirements.txt
+COPY app/model/requirements.txt /app/requirements-model.txt
+RUN pip install --user -r requirements-model.txt
 
 
 FROM python:3.10-slim-bullseye as release

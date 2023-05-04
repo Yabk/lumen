@@ -1,10 +1,25 @@
 import io
-import random
-from typing import List, Tuple
+import os
+import sys
+from typing import Tuple
 
 import librosa
 import numpy as np
 from fastapi import FastAPI, UploadFile
+
+from .notebook_finder import NotebookFinder
+
+sys.meta_path.append(NotebookFinder())
+
+from .model.full_model import FullModel
+
+try:
+    MODEL_CHECKPOINT_PATH = os.environ['MODEL_PATH']
+except KeyError as e:
+    print('Set the environment variable MODEL_PATH to point to the model checkpoint.')
+    raise e
+
+model = FullModel(MODEL_CHECKPOINT_PATH)
 
 app = FastAPI()
 
@@ -20,19 +35,12 @@ def preprocess_audio(audio_bytes: bytes) -> Tuple[np.ndarray, int]:
     return signal, sr
 
 
-def dummy_predict(audio: np.ndarray, sr: int) -> List[float]:
-    """Return a random prediction for each class label."""
-    predictions = [random.uniform(0, 1) for i in range(len(LABELS))]
-    return predictions
-
-
 @app.post("/predict")
 async def predict(file: UploadFile):
     """Predict API endpoint."""
     audio_bytes = await file.read()
 
     audio, sr = preprocess_audio(audio_bytes)
-    predictions = dummy_predict(audio, sr)
-    label_probabilities = {LABELS[i]: float(predictions[i]) for i in range(len(LABELS))}
+    predictions = model.predict(audio, sr)
 
-    return label_probabilities
+    return predictions
