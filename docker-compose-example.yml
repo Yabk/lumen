@@ -1,0 +1,19 @@
+version: "3.8"
+name: lumen2
+
+services:
+  backend:
+    build: ./backend
+    image: lumen/backend
+    volumes:
+      - /path/to/models:/models
+    environment:
+      - MODEL_PATH=/models/resnet34.ckpt
+
+  frontend:
+    build: ./frontend
+    image: lumen/frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8000
